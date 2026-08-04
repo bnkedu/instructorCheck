@@ -50,7 +50,8 @@
         method: 'POST',
         redirect: 'follow',
         headers: {
-          'Content-Type': 'application/json'
+          // 'Content-Type': 'application/json'
+          'Content-Type': 'text/plain;charset=utf-8'
         },
         body: JSON.stringify({
           action: 'searchInstructorData', // 백엔드에서 어떤 동작인지 구분용 (선택사항)
@@ -375,7 +376,8 @@ function submitSignature() {
                 method: 'POST',
                 redirect: 'follow',
                 headers: {
-                    'Content-Type': 'application/json'
+                    // 'Content-Type': 'application/json'
+                    'Content-Type': 'text/plain;charset=utf-8'
                 },
                 body: JSON.stringify(payload)
             })

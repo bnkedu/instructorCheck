@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- 분리된 CSS 파일 불러오기 -->
+  <link rel="stylesheet" href="stylesheet.css">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h2>강사확인서</h2>
+    <div class="form-row">
+      <div class="form-group">
+        <label>강사명</label>
+        <input type="text" id="name" placeholder="예: 김이름">
+      </div>
+      <div class="form-group">
+        <label>
+          연락처
+          <small class="guide-text blink-guide">(👇🏻 010 제외 8자리 👇🏻)</small>
+        </label>
+        <input type="tel" id="phone" placeholder="예: 12345678" inputmode="numeric">
+      </div>
+    </div>
+    <button onclick="search()">조회하기</button>
+    <div id="errorMsg" class="error"></div>
+    
+    <div id="resultArea" style="margin-top: 20px;"></div>
+  </div>
+
+  <script>
+    var currentMonth = "";
+    var canvas, ctx, isDrawing = false;
+
+    // 1. 강사확인서 조회 함수
+    function search() {
+      var name = document.getElementById('name').value.trim();
+      var phone = document.getElementById('phone').value.trim();
+      var errorDiv = document.getElementById('errorMsg');
+      var resultDiv = document.getElementById('resultArea');
+      
+      errorDiv.innerText = "";
+      resultDiv.innerHTML = "<p style='text-align:center; font-size:16px; padding:20px;'>조회 중...</p>";
+      
+      fetch('https://script.google.com/macros/s/AKfycbya5KuhFz_AQBf9rpQPpFR2R-Dnevw9E8TESa6AVtUNdxZGtIqTePaJ_Ic5zp9DrgvVpw/exec', {
+        method: 'POST',
+        redirect: 'follow',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          action: 'searchInstructorData', // 백엔드에서 어떤 동작인지 구분용 (선택사항)
+          name: name,
+          phone: phone
+        })
+      })
+      .then(response => response.json())
+      .then(res => {
+        if (!res.success) {
+          errorDiv.innerText = res.message;
+          resultDiv.innerHTML = "";
+          return;
+        }
+              
+        currentMonth = res.month;
+        var s = res.summary;
+
+          var html = `
+            <div class="sheet-box" id="confirmation-card">
+              <div style="display: flex; justify-content: space-between; padding: 10px 15px; background: #f8fafc; border-radius: 8px; margin-bottom: 15px; border: 1px solid #e2e8f0; font-size: 14px; color: #334155;">
+                <div><strong>강사명:</strong> <span id="pdf-instructor-name">${name || "-"}</span></div>
+                <div><strong>연락처:</strong> <span id="pdf-instructor-phone">${phone || "-"}</span></div>
+              </div>
+
+              <div class="sheet-header">${res.month}월 강사확인서</div>
+              
+              <div class="summary-card-container">
+                <div class="summary-card">
+                  <div class="summary-label">입금계좌</div>
+                  <div class="summary-value">${res.account}</div>
+                </div>
+                <div class="summary-card total-card">
+                  <div class="summary-label">강사비 총계</div>
+                  <div class="summary-value">${s.grandTotal.toLocaleString()} 원</div>
+                </div>
+              </div>
+              <div class="total-card" style="text-align: right; font-size: 9px; color: #64748b; margin-top: -15px; margin-bottom: 15px; line-height: 1.3;">
+                  ※ 위 금액은 세전 금액이며, 원천징수세금(3.3%) 제외 후 지급됩니다.
+              </div>
+              
+
+              <div class="section-title">1. 주강사</div>
+              <table class="data-table">
+                <colgroup>
+                  <col style="width: 28%;">
+                  <col style="width: 34%;">
+                  <col style="width: 14%;">
+                  <col style="width: 24%;">
+                </colgroup>
+                <tr>
+                  <th>일시</th>
+                  <th>일정</th>
+                  <th>시수</th>
+                  <th>일급</th>
+                </tr>
+          `;
+          
+          if (res.mainData.length === 0) {
+            html += `<tr><td colspan="4" style="padding: 16px;">배정된 주강사 일정이 없습니다.</td></tr>`;
+          } else {
+            res.mainData.forEach(function(item) {
+              html += `<tr>
+                <td style='white-space: pre-line;'>${item.colB}</td>
+                <td>${item.colC}</td>
+                <td>${item.colF}</td>
+                <td>${Number(item.colG).toLocaleString()}</td>
+              </tr>`;
+            });
+            html += `
+              <tr style="background-color: #f3f4f6; font-weight: bold;">
+                <td colspan="2">합계</td>
+                <td>${s.mainHours}</td>
+                <td>${s.mainPay.toLocaleString()} 원</td>
+              </tr>
+            `;
+          }
+          
+          html += `
+              </table>
+              
+              <!-- <div class="html2pdf__page-break"></div> -->
+
+              <div class="section-title">2. 보조강사 내역</div>
+              <table class="data-table">
+                <colgroup>
+                  <col style="width: 27%;">
+                  <col style="width: 31%;">
+                  <col style="width: 11%;">
+                  <col style="width: 13%;">
+                  <col style="width: 18%;">
+                </colgroup>
+                <tr>
+                  <th>일시</th>
+                  <th>일정</th>
+                  <th>시수</th>
+                  <th>기타시급</th>
+                  <th>보조 일급</th>
+                </tr>
+          `;
+          
+          if (res.subData.length === 0) {
+            html += `<tr><td colspan="5" style="padding: 16px;">배정된 보조강사 일정이 없습니다.</td></tr>`;
+          } else {
+            res.subData.forEach(function(item) {
+              html += `<tr>
+                <td style='white-space: pre-line;'>${item.colB}</td>
+                <td>${item.colC}</td>
+                <td>${item.colH}</td>
+                <td>${Number(item.colOther).toLocaleString()}</td>
+                <td>${Number(item.colI).toLocaleString()}</td>
+              </tr>`;
+            });
+            html += `
+              <tr style="background-color: #f3f4f6; font-weight: bold;">
+                <td colspan="2">합계</td>
+                <td>${s.subHours}</td>
+                <td>${s.subOtherPay.toLocaleString()}</td>
+                <td>${s.subPay.toLocaleString()} 원</td>
+              </tr>
+            `;
+          }
+          
+          html += `
+              </table>
+              
+              <div class="signature-area pdf-avoid-break">
+                <div class="signature-title">본인은 위 내역을 최종 확인하였음을 서명합니다.</div>
+                <div class="canvas-wrapper">
+                  <canvas id="sig-canvas" width="320" height="110"></canvas>
+                </div>
+                <div style="margin-top: 6px;">
+                  <button type="button" class="btn-clear" onclick="clearCanvas()">서명 초기화</button>
+                </div>
+              </div>
+
+              <div class="pdf-avoid-break" style="text-align: center; margin-top: 20px; margin-bottom: 10px;">
+                  <img src="https://lh3.googleusercontent.com/d/1X9wb2_e5g_gNzY_XRenSt5FU1o_08KQS" alt="회사 로고" style="width: 60%; max-width: 220px; height: auto; display: inline-block;">
+              </div>
+            </div>
+
+            <div class="submit-action-area" id="submit-action-area">
+              <button type="button" class="btn-submit" onclick="submitSignature()">제출</button>
+            </div>
+          `;
+          
+          resultDiv.innerHTML = html;
+          initCanvas();
+        })
+        .catch(err => {
+        errorDiv.innerText = "오류가 발생했습니다: " + err.message;
+        resultDiv.innerHTML = "";
+      });
+    }
+
+    // 2. Canvas 이벤트 초기화
+    function initCanvas() {
+      canvas = document.getElementById('sig-canvas');
+      if (!canvas) return;
+      
+      ctx = canvas.getContext('2d');
+      ctx.strokeStyle = "#000000";
+      ctx.lineWidth = 2;
+
+      canvas.onmousedown = function(e) { isDrawing = true; draw(e); };
+      canvas.onmousemove = function(e) { draw(e); };
+      canvas.onmouseup = function() { stopDrawing(); };
+      canvas.onmouseleave = function() { stopDrawing(); };
+
+      canvas.ontouchstart = function(e) {
+        isDrawing = true;
+        var touch = e.touches[0];
+        var rect = canvas.getBoundingClientRect();
+        ctx.beginPath();
+        ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
+        e.preventDefault();
+      };
+      canvas.ontouchmove = function(e) {
+        if (!isDrawing) return;
+        var touch = e.touches[0];
+        var rect = canvas.getBoundingClientRect();
+        ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
+        ctx.stroke();
+        e.preventDefault();
+      };
+      canvas.ontouchend = function() { stopDrawing(); };
+    }
+
+    function draw(e) {
+      if (!isDrawing) return;
+      var rect = canvas.getBoundingClientRect();
+      ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+    }
+
+    function stopDrawing() {
+      isDrawing = false;
+      if (ctx) ctx.beginPath();
+    }
+
+    function clearCanvas() {
+      if (ctx && canvas) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    // 공통 PDF 생성 함수 (상하단 여백 0으로 설정)
+    function generateCustomPDF(name) {
+      var element = document.getElementById('confirmation-card');
+      if (!element) return Promise.reject("확인서 영역을 찾을 수 없습니다.");
+
+      var mVal = (typeof currentMonth !== 'undefined' && currentMonth) ? currentMonth + "월_" : "";
+      var filename = mVal + "강사확인서_" + (name || "확인서") + ".pdf";
+
+      // 💡 downloadPDF와 동일한 동적 비율 계산 적용
+      var a4Width = 210; 
+      var a4Height = 297; 
+      var a4Scale = a4Height / a4Width;
+      var scaleFactor = 0.9; 
+      
+      var w = element.clientWidth * 0.264583 * scaleFactor; 
+      var h = w * a4Scale;
+
+      var opt = {
+        margin: [10, 0, 0, 0],
+        filename: filename,
+        image: { type: 'jpeg', quality: 0.7 },
+        html2canvas: { 
+          scale: 1, 
+          useCORS: true, 
+          scrollY: 0, // 스크롤 Y축을 최상단으로 고정
+          scrollX: 0, // 스크롤 X축을 최좌측으로 고정
+          logging: false, 
+          letterRendering: true, 
+          windowWidth: 790,
+        },
+        jsPDF: { unit: 'mm', format: [w, h], orientation: 'portrait' },
+        pagebreak: { mode: ['css', 'legacy']}
+      };
+    
+
+      return html2pdf().from(element).set(opt).output('datauristring');
+    }
+
+    // [1단계] 서명 제출 및 서버 저장용 PDF 생성 함수
+function submitSignature() {
+    // 🛑 1. 서명 완료 여부 엄격 검사 (서명 누락 시 즉시 차단)
+    var canvas = document.getElementById('sig-canvas');
+    var hasSignedImg = document.querySelector('.signature-area img') !== null;
+
+    // 픽셀 검사를 통해 실제 획이 그려졌는지 판별하는 변수
+    var isCanvasBlank = true; 
+    if (canvas) {
+        var ctx = canvas.getContext('2d');
+        // 캔버스 전체의 픽셀 데이터(RGBA)를 가져옴
+        var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+        // 픽셀 배열을 돌며 알파(Alpha) 채널(4번째 값)이 0이 아닌 것(그려진 부분)이 있는지 확인
+        for (var i = 3; i < imageData.length; i += 4) {
+            if (imageData[i] !== 0) {
+                isCanvasBlank = false; // 무언가 그려져 있다면 빈 캔버스가 아님
+                break;
+            }
+        }
+    }
+
+    // 이미 저장된 서명 이미지도 없고, 캔버스마저 비어있다면 무조건 차단
+    if (!hasSignedImg && (!canvas || isCanvasBlank)) {
+        alert("서명이 완료되지 않았습니다. 서명 후 다시 제출해 주세요.");
+        return;
+    }
+
+    // 🛑 2. 서명이 확인된 후에만 버튼 잠금 및 제출 진행
+    var submitBtn = document.querySelector('.btn-submit');
+    if (submitBtn) {
+        if (submitBtn.disabled) return;
+        submitBtn.disabled = true;
+        submitBtn.dataset.originalText = submitBtn.innerText;
+        submitBtn.innerText = "제출 중...";
+    }
+
+    try {
+        var nameInput = document.getElementById('name');
+        var phoneInput = document.getElementById('phone');
+        var name = nameInput ? nameInput.value.trim() : "";
+        var phone = phoneInput ? phoneInput.value.trim() : "";
+        var mVal = (typeof currentMonth !== 'undefined' && currentMonth) ? currentMonth : "";
+
+        var elName = document.getElementById('pdf-instructor-name');
+        var elPhone = document.getElementById('pdf-instructor-phone');
+        if (elName) elName.innerText = name || "-";
+        if (elPhone) elPhone.innerText = phone || "-";
+
+        if (canvas && !hasSignedImg) {
+            var signatureImgData = canvas.toDataURL("image/png");
+            var signatureArea = document.querySelector('.signature-area');
+            if (signatureArea) {
+                signatureArea.innerHTML = `
+                    <div class="signature-title" style="font-size: 13px; color: #475569; margin-bottom: 6px;">
+                        본인은 위 내역을 최종 확인하였음을 서명합니다.
+                    </div>
+                    <div style="text-align: center;">
+                        <img src="${signatureImgData}" style="max-width: 220px; height: 70px; vertical-align: middle; border-bottom: 1px solid #cbd5e1;" />
+                    </div>
+                `;
+            }
+        }
+
+        // 서버 저장용 PDF 생성
+        generateCustomPDF(name).then(function(pdfBase64) {
+            var payload = {
+                action: 'saveSignaturePDF',
+                name: name,
+                phone: phone,
+                month: mVal,
+                pdfData: pdfBase64
+            };
+
+            // 🛑 3. 백엔드 통신 (google.script.run 대신 fetch 사용)
+            fetch('https://script.google.com/macros/s/AKfycbya5KuhFz_AQBf9rpQPpFR2R-Dnevw9E8TESa6AVtUNdxZGtIqTePaJ_Ic5zp9DrgvVpw/exec', {
+                method: 'POST',
+                redirect: 'follow',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json())
+            .then(response => {
+                console.log("백엔드 저장 완료:", response);
+                if (response && response.success === false) {
+                    alert(response.message);
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = submitBtn.dataset.originalText || "제출";
+                    }
+                    return;
+                }
+
+                    // ✅ 성공 시 처리
+                    alert("제출 완료!\n아래 [PDF 저장] 버튼을 누르시면 다운로드됩니다.");
+                    var actionArea = document.getElementById('submit-action-area');
+                    if (actionArea) {
+                        actionArea.innerHTML = `
+                            <button type="button" class="btn-submit" style="background-color: #059669;" onclick="downloadPDF('${name}')">📄 PDF 저장</button>
+                        `;
+                    }
+                })
+                .catch(err => {
+                console.error("백엔드 저장 실패:", err);
+                alert("백엔드 저장 실패: " + err.message);
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = submitBtn.dataset.originalText || "제출";
+                }
+            });
+
+        }).catch(function(err) {
+            console.error("PDF 생성 오류:", err);
+            alert("PDF 생성 실패: " + err);
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerText = submitBtn.dataset.originalText || "제출";
+            }
+        });
+
+    } catch (e) {
+        console.error("submitSignature 에러:", e);
+        alert("처리 중 에러 발생: " + e.message);
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = submitBtn.dataset.originalText || "제출";
+        }
+    }
+}
+
+    // 💡 80% 축소 + 복사본(Clone) 기반 PDF 생성 공통 함수
+    function generateCustomPDF(name) {
+      return new Promise(function(resolve, reject) {
+        var originalElement = document.getElementById('confirmation-card');
+        if (!originalElement) {
+          reject(new Error("확인서 영역을 찾을 수 없습니다."));
+          return;
+        }
+
+        // 1. 원본 요소를 복사하여 독립된 변환용 객체 생성
+        var clonedElement = originalElement.cloneNode(true);
+
+        // 2. 복사본 스타일 리셋 및 80% 축소 적용
+        clonedElement.style.width = '790px';
+        clonedElement.style.height = 'auto';
+        clonedElement.style.maxHeight = 'none';
+        clonedElement.style.overflow = 'visible';
+        clonedElement.style.position = 'relative';
+        clonedElement.style.display = 'block';
+        clonedElement.style.background = '#ffffff';
+        
+        // 💡 핵심: 80% 축소 및 상단 중앙 정렬 기준점 설정
+        clonedElement.style.transform = 'scale(0.8)';
+        clonedElement.style.transformOrigin = 'top center';
+
+        // 3. 내부 테이블 스타일 리셋
+        var tables = clonedElement.querySelectorAll('table');
+        tables.forEach(function(table) {
+          table.style.width = '100%';
+          table.style.height = 'auto';
+          table.style.tableLayout = 'auto';
+          table.style.borderCollapse = 'collapse';
+        });
+
+        var opt = {
+          margin: [10, 0, 0, 0],
+          filename: 'temp.pdf',
+          pagebreak: { mode: ['css', 'legacy'] },
+          html2canvas: { 
+            scale: 2, 
+            scrollY: 0,
+            scrollX: 0,
+            useCORS: true, 
+            dpi: 300, 
+            windowHeight: clonedElement.scrollHeight,
+            letterRendering: true, 
+            allowTaint: false 
+          },
+          image: { type: 'jpeg', quality: 0.98 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        };
+
+        // html2pdf().from(clonedElement).set(opt).outputPdf('datauristring').then(function(pdfBase64) {
+        //   resolve(pdfBase64);
+        // }).catch(function(err) {
+        //   reject(err);
+        // 💡 강제 마지막 페이지 삭제 로직 결합
+          html2pdf().from(clonedElement).set(opt).toPdf().get('pdf').then(function(pdf) {
+            var totalPages = pdf.internal.getNumberOfPages();
+            if (totalPages > 1) {
+              pdf.setPage(totalPages);
+              pdf.deletePage(totalPages); // 유령 마지막 장 강제 삭제
+            }
+            return pdf.output('datauristring');
+          }).then(function(pdfBase64) {
+            resolve(pdfBase64);
+          }).catch(function(err) {
+            reject(err);
+        });
+      });
+    }
+
+    // 2️⃣ [2단계] 강사 본인 PDF 다운로드 전용 함수
+    function downloadPDF(name) {
+      var originalElement = document.getElementById('confirmation-card');
+      if (!originalElement) {
+        alert("확인서 영역을 찾을 수 없습니다.");
+        return;
+      }
+
+      var nameVal = document.getElementById('name') ? document.getElementById('name').value.trim() : name;
+      var phoneVal = document.getElementById('phone') ? document.getElementById('phone').value.trim() : "";
+
+      var elName = document.getElementById('pdf-instructor-name');
+      var elPhone = document.getElementById('pdf-instructor-phone');
+      if (elName) elName.innerText = nameVal || "-";
+      if (elPhone) elPhone.innerText = phoneVal || "-";
+
+      var mVal = (typeof currentMonth !== 'undefined' && currentMonth) ? currentMonth + "월_" : "";
+      var filename = mVal + "강사확인서_" + (nameVal || "확인서") + ".pdf";
+
+      // 1. 복사본 생성
+      var clonedElement = originalElement.cloneNode(true);
+
+      // 2. 복사본 스타일 리셋 및 80% 축소 적용
+      clonedElement.style.width = '790px';
+      clonedElement.style.height = 'auto';
+      clonedElement.style.maxHeight = 'none';
+      clonedElement.style.overflow = 'visible';
+      clonedElement.style.position = 'relative';
+      clonedElement.style.display = 'block';
+      clonedElement.style.background = '#ffffff';
+
+      // 💡 핵심: 80% 축소 및 상단 중앙 정렬 기준점 설정
+      clonedElement.style.transform = 'scale(0.8)';
+      clonedElement.style.transformOrigin = 'top center';
+
+      // 3. 내부 테이블 스타일 리셋
+      var tables = clonedElement.querySelectorAll('table');
+      tables.forEach(function(table) {
+        table.style.width = '100%';
+        table.style.height = 'auto';
+        table.style.tableLayout = 'auto';
+        table.style.borderCollapse = 'collapse';
+      });
+
+      var opt = {
+        margin: [10, 0, 0, 0],
+        filename: filename,
+        pagebreak: { mode: ['css', 'legacy'] },
+        html2canvas: { 
+          scale: 2, 
+          scrollY: 0,
+          scrollX: 0,
+          useCORS: true, 
+          dpi: 300, 
+          // 💡 축소 비율(0.8)을 곱해 실제 필요한 영역만 캡처하여 유령 백지 공간 사전 차단
+          windowHeight: Math.floor(clonedElement.scrollHeight * 0.8),
+          letterRendering: true, 
+          allowTaint: false 
+        },
+        image: { type: 'jpeg', quality: 0.98 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      };
+
+      alert("PDF 파일 다운로드를 시작합니다.");
+      html2pdf()
+        .from(clonedElement)
+        .set(opt)
+        .toPdf()
+        .get('pdf')
+        .then(function(pdf) {
+          var totalPages = pdf.internal.getNumberOfPages();
+          if (totalPages > 1) {
+            pdf.setPage(totalPages);
+            pdf.deletePage(totalPages); // 유령 빈 페이지 삭제
+          }
+        })
+        .save(filename) // 👈 원래 코드의 다운로드 저장 시점 실행
+        .catch(function(err) {
+          console.error("PDF 다운로드 오류:", err);
+          alert("다운로드 중 오류가 발생했습니다.");
+        });
+
+    }
+  </script>
+</body>
+</html>

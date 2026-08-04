@@ -1,0 +1,438 @@
+  /* 기본(PC 기준) 스타일 */
+  body { 
+    font-family: 'Malgun Gothic', sans-serif; 
+    background-color: #f8f9fa; 
+    margin: 0; 
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+    box-sizing: border-box;
+  }
+
+  .container { 
+    width: 100%;
+    max-width: 650px; 
+    background: #fff; 
+    padding: 32px 28px; 
+    border-radius: 16px; 
+    box-shadow: 0 4px 16px rgba(0,0,0,.08); 
+    box-sizing: border-box; 
+  }
+  
+  h2 { 
+    color: #1a73e8; 
+    margin-top: 0; 
+    margin-bottom: 24px; 
+    text-align: center; 
+    font-size: 28px; 
+    font-weight: 700; 
+  }
+  
+  .form-row { 
+    display: flex; 
+    flex-direction: row; 
+    gap: 16px; 
+    margin-bottom: 24px; 
+  }
+  
+  .form-group { 
+    flex: 1;
+    width: auto; 
+  }
+  
+  label { 
+    display: block; 
+    margin-bottom: 8px; 
+    font-weight: bold; 
+    font-size: 15px; 
+    color: #333; 
+  }
+  
+  .guide-text { 
+    display: inline-block;
+    color: #1a73e8; 
+    font-size: 13px; 
+    font-weight: 600; 
+    margin-left: 8px; 
+  }
+
+  .blink-guide {
+    color: #ff4d4d; /* 눈에 띄는 붉은색 */
+    font-weight: bold;
+    animation: blink-effect 1s infinite; /* 1초 주기로 무한 반복 */
+  }
+
+  @keyframes blink-effect {
+    0% { opacity: 1; }
+    50% { opacity: 0.3; } /* 깜빡이며 흐려지는 효과 */
+    100% { opacity: 1; }
+  }
+
+  input { 
+    width: 100%; 
+    height: 42px; 
+    padding: 0 12px; 
+    box-sizing: border-box; 
+    border: 1px solid #ddd; 
+    border-radius: 8px; 
+    font-size: 15px; 
+    transition: .2s; 
+  }
+
+  input::placeholder {
+    font-size: 14px;
+    color: #aaa;
+  }
+
+  input:focus { 
+    outline: none; 
+    border-color: #1a73e8; 
+    box-shadow: 0 0 0 3px rgba(26,115,232,.15); 
+  }
+
+  input[type=number]::-webkit-inner-spin-button, 
+  input[type=number]::-webkit-outer-spin-button { 
+    -webkit-appearance: none; 
+    margin: 0; 
+  }
+
+  button { 
+    width: 100%; 
+    height: 46px; 
+    background: #1a73e8;
+    color: white; 
+    border: none; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    font-size: 16px; 
+    font-weight: 700; 
+    margin-top: 6px; 
+    transition: .2s; 
+  }
+
+  button:hover { 
+    background: #1557b0; 
+  }
+
+  button:active { 
+    transform: scale(.98); 
+  }
+  
+  .sheet-box { 
+    border: 2px solid #333333; 
+    margin-top: 24px; 
+    padding: 20px 16px; 
+    background: #fff; 
+    border-radius: 12px; 
+  /* 💡 추가: 이 박스 덩어리 내부가 페이지 중간에 어정쩡하게 쪼개지는 것을 방지 */
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+
+    page-break-after: auto !important;
+    break-after: auto !important;
+    margin-bottom: 0 !important;
+  }
+  
+  /* 💡 [폰트 업그레이드] 타이틀 크기를 28px로 더 큼직하게 강조 */
+  .sheet-header { 
+    text-align: center; 
+    font-size: 28px; 
+    font-weight: bold; 
+    margin: 40px 0 22px 0; 
+    border-bottom: 2px solid #333333; 
+    padding-bottom: 14px; 
+    color: #111111; 
+  }
+  
+  /* -------------------------------------------------------------------------- */
+  /* 입금계좌 및 강사비 총계 카드 레이아웃 */
+  /* -------------------------------------------------------------------------- */
+  .summary-card-container { 
+    display: flex !important; 
+    flex-direction: row !important; 
+    gap: 14px !important; 
+    margin-bottom: 22px !important; 
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  
+  .summary-card { 
+    flex: 1 !important; 
+    width: 50% !important;
+    background-color: #f8fbff; 
+    border: 1px solid #cce0ff; 
+    border-radius: 10px; 
+    padding: 16px 18px; 
+    box-sizing: border-box;
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+  }
+  
+  .summary-card.total-card { 
+    background-color: #e8f0fe; 
+    border: 1px solid #b9d2f5; 
+  }
+  
+  /* 💡 [폰트 업그레이드] 카드 라벨 크기 14.5px로 상향 */
+  .summary-label { 
+    font-size: 14.5px; 
+    font-weight: bold; 
+    color: #1967d2; 
+    margin-bottom: 6px; 
+  }
+  
+  /* 💡 [폰트 업그레이드] 계좌번호 및 금액 크기 21px로 시원하게 확대 */
+  .summary-value { 
+    font-size: 21px; 
+    font-weight: bold; 
+    color: #174ea6; 
+    text-align: right; 
+    word-break: break-all; 
+  }
+
+  /* 💡 [폰트 업그레이드] 테이블 내부 텍스트 14.5px로 확대 */
+  table.data-table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    margin-top: 10px; 
+    margin-bottom: 22px; 
+    table-layout: fixed; 
+  }
+  
+  table.data-table th, table.data-table td { 
+    border: 1px solid #d1d5db; 
+    padding: 11px 6px; 
+    text-align: center !important; 
+    vertical-align: middle; 
+    font-size: 14.5px; 
+    word-break: keep-all;
+  }
+  
+  table.data-table th { 
+    background-color: #e5e7eb; 
+    color: #1f2937; 
+    font-weight: bold; 
+  }
+
+  .break-before { page-break-before: always; }
+  .break-after { page-break-after: always; }
+  .break-avoid { page-break-inside: avoid; }
+  .fullpage { height: auto !important; min-height: 0 !important; }
+
+  .error { 
+    color: red; 
+    margin-top: 12px; 
+    font-weight: bold; 
+    text-align: center; 
+    font-size: 14px; 
+  }
+
+  /* PDF 출력 카드 전체 정렬 */
+  #confirmation-card {
+    width: 790px !important; 
+    max-width: 100% !important; 
+    margin: 0 auto !important; 
+    padding: 16px 24px !important; 
+    /* padding: 16px 24px 40px 24px !important; */
+    box-sizing: border-box !important; 
+    background-color: #ffffff !important;
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+    position: relative !important;
+  }
+
+  /* 테이블 행(tr)은 중간에 잘리지 않도록 보호 */
+  #confirmation-card tr {
+    display: table-row !important; 
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  #confirmation-card td, 
+  #confirmation-card th {
+    border: 1px solid #d1d5db !important; 
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+  
+  /* 1. 보조강사 타이틀은 혼자 덜렁 남지 않고, 공간이 부족하면 자연스럽게 다음 페이지로 이동 */
+  .section-title {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+    background-color: #212529; 
+    color: white; 
+    padding: 11px 14px; 
+    font-weight: bold; 
+    margin-top: 22px; 
+    font-size: 16px; 
+    text-align: center; 
+    border-radius: 6px 6px 0 0; 
+  }
+
+  /* 2. 타이틀 바로 밑에 오는 테이블의 첫 번째 행(헤더)도 타이틀과 함께 묶임 */
+  table.data-table tr:first-child {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* 서명이든 로고든 애매하게 잘릴 때 개별적으로 다음 페이지로 넘어가게 해주는 공통 클래스 */
+  .pdf-avoid-break {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* 💡 [폰트 업그레이드] 최상단 강사명 및 연락처 크기 15px로 확대 */
+  #confirmation-card > div:first-child,
+  .pdf-top-info {
+    font-size: 15px !important;
+    font-weight: 600;
+    color: #334155;
+    padding: 11px 16px !important;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin-bottom: 12px;
+  }
+
+  /* 서명 초기화 버튼 */
+  .btn-clear {
+    display: inline-block !important;
+    width: auto !important;
+    height: 30px !important;            
+    min-height: 0 !important;           
+    line-height: 30px !important;       
+    margin-top: 10px !important;
+    padding: 0 14px !important;         
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    color: #64748b !important;          
+    background-color: #e2e8f0 !important;
+    border: none !important;
+    border-radius: 4px !important;
+    text-decoration: none !important;
+    cursor: pointer;
+    box-sizing: border-box !important;
+    vertical-align: middle !important;
+  }
+
+  .btn-clear:hover {
+    background-color: #cbd5e1 !important;
+    color: #334155 !important;
+  }
+
+  /* 제출 및 PDF 저장 버튼 */
+  .submit-action-area {
+    margin-top: 16px !important;
+    margin-bottom: 20px !important;
+    text-align: center !important;
+  }
+
+  .btn-submit {
+    display: inline-block !important;
+    width: 100% !important;
+    max-width: 220px !important;        
+    height: 44px !important;            
+    min-height: 0 !important;           
+    line-height: 44px !important;       
+    padding: 0 16px !important;
+    font-size: 14.5px !important;
+    font-weight: 600 !important;
+    color: #ffffff !important;
+    background-color: #2563eb !important;
+    border: none !important;
+    border-radius: 6px !important;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2) !important;
+    box-sizing: border-box !important;
+  }
+
+  .btn-submit:hover {
+    background-color: #1d4ed8 !important;
+  }
+
+  /* 서명 영역 스타일 */
+  .signature-area {
+    margin-top: 22px;
+    padding: 0;
+    text-align: center;
+  }
+
+  .signature-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 8px;
+  }
+
+  .canvas-wrapper {
+    display: inline-block;
+    width: 100%;
+    max-width: 320px;
+  }
+
+  #sig-canvas {
+    width: 100%;
+    height: 115px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background-color: #ffffff;
+    touch-action: none;
+    cursor: crosshair;
+  }
+
+  /* 모바일 환경 반응형 스타일 */
+  @media screen and (max-width: 768px) {
+    .container { 
+      max-width: 850px; 
+      padding: 16px 12px; 
+      border-radius: 12px; 
+    }
+    h2 { 
+      font-size: 24px; 
+      margin-bottom: 20px; 
+    }
+    .form-row { 
+      flex-direction: column; 
+      gap: 16px; 
+      margin-bottom: 20px; 
+    }
+    label { 
+      font-size: 15px; 
+      margin-bottom: 6px; 
+    }
+    input { 
+      height: 44px; 
+      font-size: 15px; 
+    }
+    button { 
+      height: 46px; 
+      font-size: 15px; 
+    }
+
+    .sheet-header { 
+      font-size: 24px; 
+    }
+    .summary-card-container { 
+      flex-direction: column !important; 
+      gap: 10px !important; 
+    }
+    .summary-card { 
+      width: 100% !important;
+      padding: 14px; 
+    }
+    .summary-label { 
+      font-size: 14px; 
+    }
+    .summary-value { 
+      font-size: 22px; 
+    }
+    table.data-table th, table.data-table td { 
+      padding: 6px 2px; 
+      font-size: 12px; 
+      word-break: break-all !important;
+    }
+  }

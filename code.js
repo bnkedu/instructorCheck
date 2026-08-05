@@ -353,26 +353,30 @@ function checkAlreadySubmitted(confirmSs, name, inputLast8, targetMonth) {
 
 // 외부(깃허브 페이지)의 fetch 요청을 받아주는 유일한 진입점 (현관문)
 function doPost(e) {
-  var result = {};
+  // var result = {};
   
-  try {
-    // text/plain으로 넘어온 JSON 문자열 파싱
-    var data = JSON.parse(e.postData.contents);
-    var action = data.action;
+  // try {
+  //   // text/plain으로 넘어온 JSON 문자열 파싱
+  //   var data = JSON.parse(e.postData.contents);
+  //   var action = data.action;
 
-    if (action === 'searchInstructorData') {
-      result = searchInstructorData(data.name, data.phone); 
-    } else if (action === 'saveSignaturePDF') {
-      result = saveSignaturePDF(data);
-    } else {
-      result = { success: false, message: "알 수 없는 요청입니다." };
-    }
+  //   if (action === 'searchInstructorData') {
+  //     result = searchInstructorData(data.name, data.phone); 
+  //   } else if (action === 'saveSignaturePDF') {
+  //     result = saveSignaturePDF(data);
+  //   } else {
+  //     result = { success: false, message: "알 수 없는 요청입니다." };
+  //   }
 
-  } catch (err) {
-    result = { success: false, message: "서버 처리 에러: " + err.toString() };
-  }
+  // } catch (err) {
+  //   result = { success: false, message: "서버 처리 에러: " + err.toString() };
+  // }
 
-  // ★ 핵심: TextOutput으로 출력하되, CORS 요청을 완벽하게 수용하도록 리턴합니다.
+  // // ★ 핵심: TextOutput으로 출력하되, CORS 요청을 완벽하게 수용하도록 리턴합니다.
+  // return ContentService.createTextOutput(JSON.stringify(result))
+  //                      .setMimeType(ContentService.MimeType.JSON);
+  var result = { success: true, message: "접속 성공" };
   return ContentService.createTextOutput(JSON.stringify(result))
                        .setMimeType(ContentService.MimeType.JSON);
+  
 }

@@ -353,24 +353,26 @@ function checkAlreadySubmitted(confirmSs, name, inputLast8, targetMonth) {
 
 // 외부(깃허브 페이지)의 fetch 요청을 받아주는 유일한 진입점 (현관문)
 function doPost(e) {
+  var result = {};
+  
   try {
+    // text/plain으로 넘어온 JSON 문자열 파싱
     var data = JSON.parse(e.postData.contents);
     var action = data.action;
-    var result = {};
 
     if (action === 'searchInstructorData') {
-      // 본인이 원래 쓰시던 조회 함수 이름과 인자값으로 변경해주세요!
       result = searchInstructorData(data.name, data.phone); 
+    } else if (action === 'saveSignaturePDF') {
+      result = saveSignaturePDF(data);
     } else {
       result = { success: false, message: "알 수 없는 요청입니다." };
     }
 
-    // ⭐ 이 부분이 있어야 브라우저가 빈 화면 대신 JSON을 받아갑니다!
-    return ContentService.createTextOutput(JSON.stringify(result))
-                         .setMimeType(ContentService.MimeType.JSON);
-
   } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({ success: false, message: err.toString() }))
-                         .setMimeType(ContentService.MimeType.JSON);
+    result = { success: false, message: "서버 처리 에러: " + err.toString() };
   }
+
+  // ★ 핵심: TextOutput으로 출력하되, CORS 요청을 완벽하게 수용하도록 리턴합니다.
+  return ContentService.createTextOutput(JSON.stringify(result))
+                       .setMimeType(ContentService.MimeType.JSON);
 }

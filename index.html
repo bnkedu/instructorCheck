@@ -33,6 +33,7 @@
   </div>
 
   <script>
+    var API_URL = 'https://instructor-api.seol7518.workers.dev/';
     var currentMonth = "";
     var canvas, ctx, isDrawing = false;
 
@@ -46,12 +47,12 @@
       errorDiv.innerText = "";
       resultDiv.innerHTML = "<p style='text-align:center; font-size:16px; padding:20px;'>조회 중...</p>";
       
-      fetch('https://script.google.com/macros/s/AKfycbweFZMHm5BVny_81LBCX8zxRvhbcn4lDiQ-xeo-KpNeX711m5AJRGFdq5L5Tl0AlbjmJA/exec', {
+      fetch(API_URL, {
         method: 'POST',
         redirect: 'follow',
         headers: {
-          // 'Content-Type': 'application/json'
-          'Content-Type': 'text/plain;'
+          'Content-Type': 'application/json'
+          // 'Content-Type': 'text/plain'
         },
         body: JSON.stringify({
           action: 'searchInstructorData', // 백엔드에서 어떤 동작인지 구분용 (선택사항)
@@ -261,42 +262,42 @@
     }
 
     // 공통 PDF 생성 함수 (상하단 여백 0으로 설정)
-    function generateCustomPDF(name) {
-      var element = document.getElementById('confirmation-card');
-      if (!element) return Promise.reject("확인서 영역을 찾을 수 없습니다.");
+    // function generateCustomPDF(name) {
+    //   var element = document.getElementById('confirmation-card');
+    //   if (!element) return Promise.reject("확인서 영역을 찾을 수 없습니다.");
 
-      var mVal = (typeof currentMonth !== 'undefined' && currentMonth) ? currentMonth + "월_" : "";
-      var filename = mVal + "강사확인서_" + (name || "확인서") + ".pdf";
+    //   var mVal = (typeof currentMonth !== 'undefined' && currentMonth) ? currentMonth + "월_" : "";
+    //   var filename = mVal + "강사확인서_" + (name || "확인서") + ".pdf";
 
-      // 💡 downloadPDF와 동일한 동적 비율 계산 적용
-      var a4Width = 210; 
-      var a4Height = 297; 
-      var a4Scale = a4Height / a4Width;
-      var scaleFactor = 0.9; 
+    //   // 💡 downloadPDF와 동일한 동적 비율 계산 적용
+    //   var a4Width = 210; 
+    //   var a4Height = 297; 
+    //   var a4Scale = a4Height / a4Width;
+    //   var scaleFactor = 0.9; 
       
-      var w = element.clientWidth * 0.264583 * scaleFactor; 
-      var h = w * a4Scale;
+    //   var w = element.clientWidth * 0.264583 * scaleFactor; 
+    //   var h = w * a4Scale;
 
-      var opt = {
-        margin: [10, 0, 0, 0],
-        filename: filename,
-        image: { type: 'jpeg', quality: 0.7 },
-        html2canvas: { 
-          scale: 1, 
-          useCORS: true, 
-          scrollY: 0, // 스크롤 Y축을 최상단으로 고정
-          scrollX: 0, // 스크롤 X축을 최좌측으로 고정
-          logging: false, 
-          letterRendering: true, 
-          windowWidth: 790,
-        },
-        jsPDF: { unit: 'mm', format: [w, h], orientation: 'portrait' },
-        pagebreak: { mode: ['css', 'legacy']}
-      };
+    //   var opt = {
+    //     margin: [10, 0, 0, 0],
+    //     filename: filename,
+    //     image: { type: 'jpeg', quality: 0.7 },
+    //     html2canvas: { 
+    //       scale: 1, 
+    //       useCORS: true, 
+    //       scrollY: 0, // 스크롤 Y축을 최상단으로 고정
+    //       scrollX: 0, // 스크롤 X축을 최좌측으로 고정
+    //       logging: false, 
+    //       letterRendering: true, 
+    //       windowWidth: 790,
+    //     },
+    //     jsPDF: { unit: 'mm', format: [w, h], orientation: 'portrait' },
+    //     pagebreak: { mode: ['css', 'legacy']}
+    //   };
     
 
-      return html2pdf().from(element).set(opt).output('datauristring');
-    }
+    //   return html2pdf().from(element).set(opt).output('datauristring');
+    // }
 
     // [1단계] 서명 제출 및 서버 저장용 PDF 생성 함수
 function submitSignature() {
@@ -372,12 +373,12 @@ function submitSignature() {
             };
 
             // 🛑 3. 백엔드 통신 (google.script.run 대신 fetch 사용)
-            fetch('https://script.google.com/macros/s/AKfycbweFZMHm5BVny_81LBCX8zxRvhbcn4lDiQ-xeo-KpNeX711m5AJRGFdq5L5Tl0AlbjmJA/exec', {
+            fetch(API_URL, {
                 method: 'POST',
                 redirect: 'follow',
                 headers: {
-                    // 'Content-Type': 'application/json'
-                    'Content-Type': 'text/plain;'
+                    'Content-Type': 'application/json'
+                    // 'Content-Type': 'text/plain'
                 },
                 body: JSON.stringify(payload)
             })

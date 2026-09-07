@@ -473,6 +473,12 @@ function submitSignature() {
           table.style.borderCollapse = 'collapse';
         });
 
+        // PDF 복사본에서도 일시 셀의 줄바꿈 유지
+        var dateCells = clonedElement.querySelectorAll('.data-table td:first-child');
+        dateCells.forEach(function(cell) {
+          cell.style.whiteSpace = 'pre-line';
+        });
+
         var opt = {
           margin: [10, 0, 0, 0],
           filename: 'temp.pdf',
@@ -555,6 +561,12 @@ function submitSignature() {
         table.style.height = 'auto';
         table.style.tableLayout = 'auto';
         table.style.borderCollapse = 'collapse';
+      });
+
+      // PDF 복사본에서도 일시 셀의 줄바꿈 유지
+      var dateCells = clonedElement.querySelectorAll('.data-table td:first-child');
+      dateCells.forEach(function(cell) {
+        cell.style.whiteSpace = 'pre-line';
       });
 
       var opt = {

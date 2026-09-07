@@ -207,7 +207,7 @@ table.data-table td {
   font-size: 12.5px !important;
   word-break: break-word !important;
   overflow-wrap: break-word !important;
-  white-space: normal !important;
+  white-space: pre-line !important;
   line-height: 1.35 !important;
   box-sizing: border-box !important;
 }
